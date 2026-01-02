@@ -89,8 +89,10 @@ class OpenAIChat(Model):
     async_client: Optional[AsyncOpenAIClient] = None
 
     # The role to map the message role to.
+    # Note: "developer" role is planned for future OpenAI models (o3, o4, gpt-5)
+    # but is not supported by current API. Keep "system" as "system" for now.
     default_role_map = {
-        "system": "developer",
+        "system": "system",  # Changed from "developer" for compatibility
         "user": "user",
         "assistant": "assistant",
         "tool": "tool",
