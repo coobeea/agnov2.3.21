@@ -1,5 +1,6 @@
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
+import json
 from os import getenv
 from typing import Any, Dict, Iterator, List, Literal, Optional, Type, Union
 from uuid import uuid4
@@ -402,12 +403,28 @@ class OpenAIChat(Model):
 
             assistant_message.metrics.start_timer()
 
+            # ✅ 格式化消息和请求参数
+            formatted_messages = [self._format_message(m, compress_tool_results) for m in messages]
+            request_params = self.get_request_params(
+                response_format=response_format, tools=tools, tool_choice=tool_choice, run_response=run_response
+            )
+
+            # ✅ 打印完整请求信息（调试用）
+            log_debug("=" * 80)
+            log_debug(f"📤 LLM Request to {self.provider}")
+            log_debug(f"  Model: {self.id}")
+            log_debug(f"  Messages ({len(formatted_messages)}):")
+            log_debug(json.dumps(formatted_messages, ensure_ascii=False, indent=2))
+            if tools:
+                tool_names = [t.get('function', {}).get('name', 'unknown') for t in tools]
+                log_debug(f"  Available Tools ({len(tools)}): {tool_names}")
+            log_debug(f"  Request Params: {request_params}")
+            log_debug("=" * 80)
+
             provider_response = self.get_client().chat.completions.create(
                 model=self.id,
-                messages=[self._format_message(m, compress_tool_results) for m in messages],  # type: ignore
-                **self.get_request_params(
-                    response_format=response_format, tools=tools, tool_choice=tool_choice, run_response=run_response
-                ),
+                messages=formatted_messages,  # type: ignore
+                **request_params,
             )
             assistant_message.metrics.stop_timer()
 
@@ -486,12 +503,29 @@ class OpenAIChat(Model):
                 run_response.metrics.set_time_to_first_token()
 
             assistant_message.metrics.start_timer()
+
+            # ✅ 格式化消息和请求参数
+            formatted_messages = [self._format_message(m, compress_tool_results) for m in messages]
+            request_params = self.get_request_params(
+                response_format=response_format, tools=tools, tool_choice=tool_choice, run_response=run_response
+            )
+
+            # ✅ 打印完整请求信息（调试用）
+            log_debug("=" * 80)
+            log_debug(f"📤 LLM Request to {self.provider}")
+            log_debug(f"  Model: {self.id}")
+            log_debug(f"  Messages ({len(formatted_messages)}):")
+            log_debug(json.dumps(formatted_messages, ensure_ascii=False, indent=2))
+            if tools:
+                tool_names = [t.get('function', {}).get('name', 'unknown') for t in tools]
+                log_debug(f"  Available Tools ({len(tools)}): {tool_names}")
+            log_debug(f"  Request Params: {request_params}")
+            log_debug("=" * 80)
+
             response = await self.get_async_client().chat.completions.create(
                 model=self.id,
-                messages=[self._format_message(m, compress_tool_results) for m in messages],  # type: ignore
-                **self.get_request_params(
-                    response_format=response_format, tools=tools, tool_choice=tool_choice, run_response=run_response
-                ),
+                messages=formatted_messages,  # type: ignore
+                **request_params,
             )
             assistant_message.metrics.stop_timer()
 
@@ -568,14 +602,30 @@ class OpenAIChat(Model):
 
             assistant_message.metrics.start_timer()
 
+            # ✅ 格式化消息和请求参数
+            formatted_messages = [self._format_message(m, compress_tool_results) for m in messages]
+            request_params = self.get_request_params(
+                response_format=response_format, tools=tools, tool_choice=tool_choice, run_response=run_response
+            )
+
+            # ✅ 打印完整请求信息（调试用）
+            log_debug("=" * 80)
+            log_debug(f"📤 LLM Streaming Request to {self.provider}")
+            log_debug(f"  Model: {self.id}")
+            log_debug(f"  Messages ({len(formatted_messages)}):")
+            log_debug(json.dumps(formatted_messages, ensure_ascii=False, indent=2))
+            if tools:
+                tool_names = [t.get('function', {}).get('name', 'unknown') for t in tools]
+                log_debug(f"  Available Tools ({len(tools)}): {tool_names}")
+            log_debug(f"  Request Params: {request_params}")
+            log_debug("=" * 80)
+
             for chunk in self.get_client().chat.completions.create(
                 model=self.id,
-                messages=[self._format_message(m, compress_tool_results) for m in messages],  # type: ignore
+                messages=formatted_messages,  # type: ignore
                 stream=True,
                 stream_options={"include_usage": True},
-                **self.get_request_params(
-                    response_format=response_format, tools=tools, tool_choice=tool_choice, run_response=run_response
-                ),
+                **request_params,
             ):
                 yield self._parse_provider_response_delta(chunk)
 
@@ -649,14 +699,30 @@ class OpenAIChat(Model):
 
             assistant_message.metrics.start_timer()
 
+            # ✅ 格式化消息和请求参数
+            formatted_messages = [self._format_message(m, compress_tool_results) for m in messages]
+            request_params = self.get_request_params(
+                response_format=response_format, tools=tools, tool_choice=tool_choice, run_response=run_response
+            )
+
+            # ✅ 打印完整请求信息（调试用）
+            log_debug("=" * 80)
+            log_debug(f"📤 LLM Async Streaming Request to {self.provider}")
+            log_debug(f"  Model: {self.id}")
+            log_debug(f"  Messages ({len(formatted_messages)}):")
+            log_debug(json.dumps(formatted_messages, ensure_ascii=False, indent=2))
+            if tools:
+                tool_names = [t.get('function', {}).get('name', 'unknown') for t in tools]
+                log_debug(f"  Available Tools ({len(tools)}): {tool_names}")
+            log_debug(f"  Request Params: {request_params}")
+            log_debug("=" * 80)
+
             async_stream = await self.get_async_client().chat.completions.create(
                 model=self.id,
-                messages=[self._format_message(m, compress_tool_results) for m in messages],  # type: ignore
+                messages=formatted_messages,  # type: ignore
                 stream=True,
                 stream_options={"include_usage": True},
-                **self.get_request_params(
-                    response_format=response_format, tools=tools, tool_choice=tool_choice, run_response=run_response
-                ),
+                **request_params,
             )
 
             async for chunk in async_stream:
