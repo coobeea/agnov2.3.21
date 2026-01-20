@@ -591,7 +591,18 @@ class Model(ABC):
             _compress_tool_results = compression_manager is not None and compression_manager.compress_tool_results
             _compression_manager = compression_manager if _compress_tool_results else None
 
+            # Save original tool_choice and track next round override
+            original_tool_choice = tool_choice
+            next_round_tool_choice_override = None
+
             while True:
+                # Determine effective tool_choice for this round
+                if next_round_tool_choice_override is not None:
+                    effective_tool_choice = next_round_tool_choice_override
+                    next_round_tool_choice_override = None  # Clear after use
+                else:
+                    effective_tool_choice = original_tool_choice
+
                 # Compress tool results if compression is enabled and threshold is met
                 if _compression_manager is not None and _compression_manager.should_compress(
                     messages, tools, model=self, response_format=response_format
@@ -606,7 +617,7 @@ class Model(ABC):
                     model_response=model_response,
                     response_format=response_format,
                     tools=_tool_dicts,
-                    tool_choice=tool_choice or self._tool_choice,
+                    tool_choice=effective_tool_choice or self._tool_choice,
                     run_response=run_response,
                     compress_tool_results=_compress_tool_results,
                 )
@@ -712,6 +723,14 @@ class Model(ABC):
                             send_media_to_model=send_media_to_model,
                         )
 
+                    # Check and apply next_tool_choice from executed functions
+                    extracted_next_tool_choice = self._extract_next_tool_choice_from_functions(
+                        function_calls_to_run
+                    )
+                    if extracted_next_tool_choice is not None:
+                        next_round_tool_choice_override = extracted_next_tool_choice
+                        log_info(f"Next round will use tool_choice: {extracted_next_tool_choice}")
+
                     for function_call_result in function_call_results:
                         function_call_result.log(metrics=True, use_compressed_content=_compress_tool_results)
 
@@ -796,7 +815,18 @@ class Model(ABC):
 
             function_call_count = 0
 
+            # Save original tool_choice and track next round override
+            original_tool_choice = tool_choice
+            next_round_tool_choice_override = None
+
             while True:
+                # Determine effective tool_choice for this round
+                if next_round_tool_choice_override is not None:
+                    effective_tool_choice = next_round_tool_choice_override
+                    next_round_tool_choice_override = None  # Clear after use
+                else:
+                    effective_tool_choice = original_tool_choice
+
                 # Compress existing tool results BEFORE making API call to avoid context overflow
                 if _compression_manager is not None and await _compression_manager.ashould_compress(
                     messages, tools, model=self, response_format=response_format
@@ -811,7 +841,7 @@ class Model(ABC):
                     model_response=model_response,
                     response_format=response_format,
                     tools=_tool_dicts,
-                    tool_choice=tool_choice or self._tool_choice,
+                    tool_choice=effective_tool_choice or self._tool_choice,
                     run_response=run_response,
                     compress_tool_results=_compress_tool_results,
                 )
@@ -915,6 +945,14 @@ class Model(ABC):
                             function_call_results=function_call_results,
                             send_media_to_model=send_media_to_model,
                         )
+
+                    # Check and apply next_tool_choice from executed functions
+                    extracted_next_tool_choice = self._extract_next_tool_choice_from_functions(
+                        function_calls_to_run
+                    )
+                    if extracted_next_tool_choice is not None:
+                        next_round_tool_choice_override = extracted_next_tool_choice
+                        log_info(f"Next round will use tool_choice: {extracted_next_tool_choice}")
 
                     for function_call_result in function_call_results:
                         function_call_result.log(metrics=True, use_compressed_content=_compress_tool_results)
@@ -1229,7 +1267,18 @@ class Model(ABC):
 
             function_call_count = 0
 
+            # Save original tool_choice and track next round override
+            original_tool_choice = tool_choice
+            next_round_tool_choice_override = None
+
             while True:
+                # Determine effective tool_choice for this round
+                if next_round_tool_choice_override is not None:
+                    effective_tool_choice = next_round_tool_choice_override
+                    next_round_tool_choice_override = None  # Clear after use
+                else:
+                    effective_tool_choice = original_tool_choice
+
                 # Compress existing tool results BEFORE invoke
                 if _compression_manager is not None and _compression_manager.should_compress(
                     messages, tools, model=self, response_format=response_format
@@ -1248,7 +1297,7 @@ class Model(ABC):
                         stream_data=stream_data,
                         response_format=response_format,
                         tools=_tool_dicts,
-                        tool_choice=tool_choice or self._tool_choice,
+                        tool_choice=effective_tool_choice or self._tool_choice,
                         run_response=run_response,
                         compress_tool_results=_compress_tool_results,
                     ):
@@ -1263,7 +1312,7 @@ class Model(ABC):
                         model_response=model_response,
                         response_format=response_format,
                         tools=_tool_dicts,
-                        tool_choice=tool_choice or self._tool_choice,
+                        tool_choice=effective_tool_choice or self._tool_choice,
                         run_response=run_response,
                         compress_tool_results=_compress_tool_results,
                     )
@@ -1326,6 +1375,14 @@ class Model(ABC):
                             function_call_results=function_call_results,
                             send_media_to_model=send_media_to_model,
                         )
+
+                    # Check and apply next_tool_choice from executed functions
+                    extracted_next_tool_choice = self._extract_next_tool_choice_from_functions(
+                        function_calls_to_run
+                    )
+                    if extracted_next_tool_choice is not None:
+                        next_round_tool_choice_override = extracted_next_tool_choice
+                        log_info(f"Next round will use tool_choice: {extracted_next_tool_choice}")
 
                     for function_call_result in function_call_results:
                         function_call_result.log(metrics=True, use_compressed_content=_compress_tool_results)
@@ -1449,7 +1506,18 @@ class Model(ABC):
 
             function_call_count = 0
 
+            # Save original tool_choice and track next round override
+            original_tool_choice = tool_choice
+            next_round_tool_choice_override = None
+
             while True:
+                # Determine effective tool_choice for this round
+                if next_round_tool_choice_override is not None:
+                    effective_tool_choice = next_round_tool_choice_override
+                    next_round_tool_choice_override = None  # Clear after use
+                else:
+                    effective_tool_choice = original_tool_choice
+
                 # Compress existing tool results BEFORE making API call to avoid context overflow
                 if _compression_manager is not None and await _compression_manager.ashould_compress(
                     messages, tools, model=self, response_format=response_format
@@ -1468,7 +1536,7 @@ class Model(ABC):
                         stream_data=stream_data,
                         response_format=response_format,
                         tools=_tool_dicts,
-                        tool_choice=tool_choice or self._tool_choice,
+                        tool_choice=effective_tool_choice or self._tool_choice,
                         run_response=run_response,
                         compress_tool_results=_compress_tool_results,
                     ):
@@ -1483,7 +1551,7 @@ class Model(ABC):
                         model_response=model_response,
                         response_format=response_format,
                         tools=_tool_dicts,
-                        tool_choice=tool_choice or self._tool_choice,
+                        tool_choice=effective_tool_choice or self._tool_choice,
                         run_response=run_response,
                         compress_tool_results=_compress_tool_results,
                     )
@@ -1546,6 +1614,14 @@ class Model(ABC):
                             function_call_results=function_call_results,
                             send_media_to_model=send_media_to_model,
                         )
+
+                    # Check and apply next_tool_choice from executed functions
+                    extracted_next_tool_choice = self._extract_next_tool_choice_from_functions(
+                        function_calls_to_run
+                    )
+                    if extracted_next_tool_choice is not None:
+                        next_round_tool_choice_override = extracted_next_tool_choice
+                        log_info(f"Next round will use tool_choice: {extracted_next_tool_choice}")
 
                     for function_call_result in function_call_results:
                         function_call_result.log(metrics=True, use_compressed_content=_compress_tool_results)
@@ -2554,6 +2630,27 @@ class Model(ABC):
         """
         if len(function_call_results) > 0:
             messages.extend(function_call_results)
+
+    def _extract_next_tool_choice_from_functions(
+        self,
+        function_calls_to_run: List["FunctionCall"]
+    ) -> Optional[Union[str, Dict[str, Any]]]:
+        """
+        从已执行的工具中提取 next_tool_choice
+        
+        优先级：最后一个设置了 next_tool_choice 的工具优先
+        
+        Args:
+            function_calls_to_run: 已执行的工具调用列表
+        
+        Returns:
+            next_tool_choice 值，如果没有则返回 None
+        """
+        for fc in reversed(function_calls_to_run):
+            if hasattr(fc.function, 'next_tool_choice') and fc.function.next_tool_choice is not None:
+                log_debug(f"Tool '{fc.function.name}' requested next_tool_choice: {fc.function.next_tool_choice}")
+                return fc.function.next_tool_choice
+        return None
 
     def _handle_function_call_media(
         self, messages: List[Message], function_call_results: List[Message], send_media_to_model: bool = True

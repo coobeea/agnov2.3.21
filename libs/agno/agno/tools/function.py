@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from functools import partial
 from importlib.metadata import version
-from typing import Any, Callable, Dict, List, Literal, Optional, Sequence, Type, TypeVar, get_type_hints
+from typing import Any, Callable, Dict, List, Literal, Optional, Sequence, Type, TypeVar, Union, get_type_hints
 
 from docstring_parser import parse
 from packaging.version import Version
@@ -113,6 +113,12 @@ class Function(BaseModel):
     # If True, the function will be executed outside the agent's control.
     external_execution: Optional[bool] = None
 
+    # Tool choice to apply after this function executes
+    # "none" - Don't call any tools in the next LLM request
+    # "auto" - Let LLM decide whether to call tools
+    # {"type": "function", "function": {"name": "xxx"}} - Force specific tool
+    next_tool_choice: Optional[Union[str, Dict[str, Any]]] = None
+
     # Caching configuration
     cache_results: bool = False
     cache_dir: Optional[str] = None
@@ -139,7 +145,7 @@ class Function(BaseModel):
     def to_dict(self) -> Dict[str, Any]:
         return self.model_dump(
             exclude_none=True,
-            include={"name", "description", "parameters", "strict", "requires_confirmation", "external_execution"},
+            include={"name", "description", "parameters", "strict", "requires_confirmation", "external_execution", "next_tool_choice"},
         )
 
     def model_copy(self, *, deep: bool = False) -> "Function":
